@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=1024, user-scalable=no">
+
+    <title></title>
+    
+    <!-- deck.js樣式表 -->
+    <link rel="stylesheet" href="/assets/core/deck.core.css">
+    <!-- deck.js延伸功能樣式表 -->
+    <link rel="stylesheet" href="/assets/extensions/goto/deck.goto.css">
+    <link rel="stylesheet" href="/assets/extensions/menu/deck.menu.css">
+    <link rel="stylesheet" href="/assets/extensions/navigation/deck.navigation.css">
+    <link rel="stylesheet" href="/assets/extensions/status/deck.status.css">
+    <link rel="stylesheet" href="/assets/extensions/hash/deck.hash.css">
+    <link rel="stylesheet" href="/assets/extensions/scale/deck.scale.css">
+    <!-- 投影片版型樣式 -->
+    <link id="theme_src" rel="stylesheet" href="">
+    <!-- 投影片動態樣式 -->
+    <link id="trans_src" rel="stylesheet" href="">
+    
+    <!-- Modernizr用於檢測瀏覽器對HTML5及CSS3的支援程度 -->
+    <script src="/assets/modernizr.custom.js"></script>
+    <!-- jQuery -->
+    <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+    <!-- Markdown to HTML -->
+    <script type="text/javascript" src="/assets/extensions/showdown.js"></script>
+
+    <!-- 程式碼上色syntax highlight -->
+    <script type="text/javascript" src="/assets/extensions/sher/shCore.js"></script>
+    <!-- sh核心樣式 -->
+    <link href="/assets/extensions/sher/shCore.css" rel="stylesheet" type="text/css" />
+    <link href="/assets/extensions/sher/shThemeDefault.css" rel="stylesheet" type="text/css" />
+    <!-- sh所支援的語言 -->
+    <script type="text/javascript" src="/assets/extensions/sher/shBrushPhp.js"></script>
+    <script type="text/javascript" src="/assets/extensions/sher/shBrushXml.js"></script>
+    <script type="text/javascript" src="/assets/extensions/sher/shBrushSql.js"></script>
+	
+	<style type="text/css">
+		#addition {
+			display: none;
+			position: fixed;
+		    bottom: 10px;
+		    left: 10px;
+			padding : 5px;
+			z-index: 999;
+			background-color: white;
+		}
+	</style>
+</head>
+<body class="deck-container">
+<!-- *** 投影片內容由此開始 *** -->
+<script type="text/javascript">
+    var text = "{{data}}";
+    var converter = new Showdown.converter();
+    var html = converter.makeHtml(decodeURIComponent(text).replace(/\+/ig, " "));
+    $("body").prepend(divideSlide(html));
+    function divideSlide(html) {
+        var page = 0;
+        var temp = "";
+        var result = "";
+        var arr = new Array();
+        arr = html.split("\n");
+
+        for(var i=0;i<arr.length;i++) {
+
+            if(arr[i].search("<hr />") != -1) {
+                result += createSlide(temp);
+                page ++;
+                if(page == 1)$("title").html(temp.replace(/(<([^>]+)>)/ig,""));
+                temp = "";
+            }
+            else  {
+                temp += arr[i] + "\n";
+            }
+            
+            if(i == arr.length - 1) {
+                result += createSlide(temp);
+                temp = "";
+                return result;
+            }
+        }
+    }
+    function createSlide(html) {
+        return "<section class='slide'>"+html+"</section>";
+    }
+</script>
+<!-- *** 投影片內容在此結束 *** -->
+
+<!-- sh將程式碼上色以及調整顯示框高度避免scrollbar出現 -->
+<script type="text/javascript">
+    SyntaxHighlighter.all();
+    setTimeout(function() {
+        $.each($("div[class^='syntaxhighlighter']"), function(key, val) {
+            $(val).css("height", "+=5");
+        });
+    }, 500);
+</script>
+
+<!-- 以下為deck.js的延伸功能 依需求增減 -->
+
+    <!-- 左右側按鈕 -->
+    <a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+    <a href="#" class="deck-next-link" title="Next">&#8594;</a>
+
+    <!-- 當前頁/總頁數 -->
+    <p class="deck-status">
+        <span class="deck-status-current"></span>
+        /
+        <span class="deck-status-total"></span>
+    </p>
+
+    <!-- 跳頁 -->
+    <form action="." method="get" class="goto-form">
+        <label for="goto-slide">切換至:</label>
+        <input type="text" name="slidenum" id="goto-slide" list="goto-datalist">頁
+        <datalist id="goto-datalist"></datalist>
+        <input type="submit" value="送出" style="display: none;">
+    </form>
+
+    <!-- deck.hash snippet -->
+    <a href="." title="Permalink to this slide" class="deck-permalink">#</a>
+
+<!-- 以上為deck.js的延伸功能 依需求增減 -->
+
+<!-- 導入deck.js核心及延伸功能函式庫 -->
+<script src="/assets/core/deck.core.js"></script>
+<script src="/assets/extensions/hash/deck.hash.js"></script>
+<script src="/assets/extensions/menu/deck.menu.js"></script>
+<script src="/assets/extensions/goto/deck.goto.js"></script>
+<script src="/assets/extensions/status/deck.status.js"></script>
+<script src="/assets/extensions/navigation/deck.navigation.js"></script>
+
+<!-- 初始化deck.js 亦可結合動態php -->
+<script>
+    $(function() {
+        $.deck('.slide');
+    });
+</script>
+
+<div id="addition">
+	Theme: <select id="theme">
+		<option value="none">none
+		<option value="neon">neon
+		<option value="swiss">swiss
+		<option value="web-2.0">web-2.0
+	</select>
+	Transition: <select id="transition">
+		<option value="none">none
+		<option value="fade">fade
+		<option value="horizontal-slide">horizontal-slide
+		<option value="vertical-slide">vertical-slide
+	</select>
+	<a href="/edit/{{_id}}">»Edit</a>
+</div>
+<script type="text/javascript">
+	$(document).mousemove(function(e) {
+		//console.log(e.pageX+","+e.pageY);
+		var appear_range = 200;
+		if(e.pageY >= document.body.clientHeight - appear_range) {
+			$("#addition").show();
+		}
+		else {
+			$("#addition").hide();
+		}
+	})
+	$("#theme").change(function() {
+		$("#theme_src").prop("href", "/assets/themes/style/"+$(this).find("option:selected").prop("value")+".css");
+	})
+	$("#transition").change(function() {
+		$("#trans_src").prop("href", "/assets/themes/transition/"+$(this).find("option:selected").prop("value")+".css");
+	})
+</script>
+</body>
+</html>
