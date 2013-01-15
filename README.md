@@ -33,7 +33,8 @@ Setup
         svrport = 999
 
 4. enjoy it!
+5. 
 
-*** jsdom module needs python and c++ runtime environment. ***
+** jsdom module needs python and c++ runtime environment. **
 
-*** be sure to install before run 'npm install'. ***
+** be sure to install before run 'npm install'. **
