@@ -158,8 +158,7 @@
 <script type="text/javascript">
 	$(document).mousemove(function(e) {
 		//console.log(e.pageX+","+e.pageY);
-		var appear_range = 200;
-		if(e.pageY >= document.body.clientHeight - appear_range) {
+		if(e.pageY >= document.body.clientHeight * 17 / 20) {
 			$("#addition").show();
 		}
 		else {

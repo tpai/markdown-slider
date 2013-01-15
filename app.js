@@ -1,5 +1,5 @@
-var http = require('http'),
-    util = require('util'),
+var	http = require('http'),
+	util = require('util'),
 	mu   = require('mu2'),
 	jsdom = require('jsdom'),
 	$ = require('jquery'),
@@ -11,7 +11,7 @@ var http = require('http'),
 	
 	//mongodb settings
 	dbserver = '',
-	dbport = '',
+	dbport = ,
 	dbname = '',
 	dbuser = '',
 	dbpass = '',
