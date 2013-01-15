@@ -35,4 +35,5 @@ Setup
 4. enjoy it!
 
 *** jsdom module needs python and c++ runtime environment. ***
+
 *** be sure to install before run 'npm install'. ***
