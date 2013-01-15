@@ -18,7 +18,8 @@ Setup
 ------
 1. unzip files into your www/ directory
 
-2. $npm install -d
+2. $npm install
+   * **jsdom module needs python and c++ runtime environment, be sure to install before run 'npm install'.**
 
 3. fill up your settings
 
