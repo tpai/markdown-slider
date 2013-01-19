@@ -38,9 +38,8 @@
 		}
 		
 		#dashboard {
-			padding: 10px;
 			position: fixed;
-			top: 10px;
+			top: 0px;
 			right: 10px;
 			display: none;
 			background-color: white;
@@ -52,7 +51,7 @@
 		<h5>Recent slides</h5>
 		<ul>
 			{{#recent_slides}}
-				<li><a href="/edit/{{_id}}">{{_id}}</a>
+				<li><a id="{{_id}}" href="/edit/{{_id}}">{{_id}}</a> <i class="icon-remove-sign"></i></li>
 			{{/recent_slides}}
 		</ul>
 		<h5>Quick launch</h5>
@@ -145,23 +144,29 @@
 		//save slide
 		var id = "{{_id}}";
 		$("#save").click(function () {
-			$.ajax({
-				type: "POST",
-				url: "/save",
-				data: {
-					_id: id,
-					markdown: encodeURIComponent($("#markdown").prop("value"))
-				},
-				complete: function(obj) {
-					if(obj.responseText != "") {
-						assignId(id = obj.responseText);
+			var markdown = $("#markdown").prop("value");
+			if(markdown != "") {
+				$.ajax({
+					type: "POST",
+					url: "/save",
+					data: {
+						_id: id,
+						markdown: encodeURIComponent(markdown)
+					},
+					complete: function(obj) {
+						if(obj.responseText != "") {
+							assignId(id = obj.responseText);
+						}
+						$("#pre_url").trigger("click");
+						//popover notice
+						$("#pre_url").popover('show');
+						setTimeout(function() {$("#pre_url").popover('hide');}, 2000)
 					}
-					$("#pre_url").trigger("click");
-					//popover notice
-					$("#pre_url").popover('show');
-					setTimeout(function() {$("#pre_url").popover('hide');}, 2000)
-				}
-			})
+				})
+			}
+			else {
+				alert("better not to save empty content")
+			}
 		});
 		
 		var assignId = function(id) {
@@ -171,6 +176,8 @@
 			$("#do_preview").prop("action", "/pre/"+id);
 		};
 		if(id != "")assignId(id);
+
+		$("#{{_id}}").parent().css("background-color", "pink");
 	})
 
 	</script>

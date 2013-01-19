@@ -8,6 +8,7 @@ var	http = require('http'),
 	cronJob = require('cron').CronJob,
 	send = require('send'),
 	url = require('url'),
+	auth = require('http-auth'),
 	
 	//mongodb settings
 	dbserver = '',
@@ -22,23 +23,30 @@ var	http = require('http'),
         safe: false
     }),
 
-    //server settings
-    svrport = 999;
+    //only known by author
+	editable = auth({
+		authRealm: "Do you have permit to edit this?",
+		authList: ['username:password']
+	}),
+
+	//server settings
+	svrport = 999;
 
 mu.root = __dirname + '/templates'
 
 //connect database
 new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
-    if (error) throw error;
-    client.authenticate(dbuser, dbpass, function(err, val) {
-        if (err) throw error;
-        else {
+	if (error) throw error;
+	client.authenticate(dbuser, dbpass, function(err, val) {
+		if (err) throw error;
+		else {
 		//select collection
 		var collection = new mongodb.Collection(client, collection_name);
 		console.log("Database Connected!")
 		
 		var router = new director.http.Router();
 
+		//create
 		router.get('/', function() {
 			var res = this.res;
 			
@@ -48,38 +56,26 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 				util.pump(stream, res);
 			})
 		})
-		
-		router.get('/edit/:id', function(id) {
+
+		//read
+		router.get('/pre/:id', function(id) {
 			var res = this.res;
 			
-			async.series([
-				dashboard_recent_slides, 
-				function(callback) {
-					collection.find({_id: new BSON.ObjectID(id)}, function(err, data) {
-						data.toArray(function(key, val) {
-							if(val.length >= 1) {
-								var markdown = decodeURIComponent(val[0].markdown);
-								callback(null, markdown);
-							}
-							else {
-								callback(null, "")
-							}
-						})
-					});
-				}], function(err, results) {
-				var recent_slides = results[0];
-				var markdown = results[1];
-				
-				if(markdown != "") {
-					var stream = mu.compileAndRender('index.html', {_id: id, data: markdown, recent_slides: recent_slides});
-					util.pump(stream, res);
-				}
-				else {
-					res.end("not found");
-				}
-			})
+			collection.find({_id: new BSON.ObjectID(id)}, function(err, data) {
+				data.toArray(function(key, val) {
+					if(val.length >= 1) {
+						var markdown = val[0].markdown;
+						var stream = mu.compileAndRender('presentation.html', {_id: id, data: markdown});
+						util.pump(stream, res);
+					}
+					else {
+						res.end("not found")
+					}
+				})
+			});
 		})
-		
+
+		//update
 		router.post('/save', function () {
 			var res = this.res;
 			res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -109,21 +105,38 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 			}
 		})
 		
-		router.get('/pre/:id', function(id) {
+		//update page
+		router.get('/edit/:id', function(id) {
 			var res = this.res;
-			
-			collection.find({_id: new BSON.ObjectID(id)}, function(err, data) {
-				data.toArray(function(key, val) {
-					if(val.length >= 1) {
-						var markdown = val[0].markdown;
-						var stream = mu.compileAndRender('presentation.html', {_id: id, data: markdown});
+			var req = this.req;
+			editable.apply(req, res, function(username) {
+				async.series([
+					dashboard_recent_slides, 
+					function(callback) {
+						collection.find({_id: new BSON.ObjectID(id)}, function(err, data) {
+							data.toArray(function(key, val) {
+								if(val.length >= 1) {
+									var markdown = decodeURIComponent(val[0].markdown);
+									callback(null, markdown);
+								}
+								else {
+									callback(null, "")
+								}
+							})
+						});
+					}], function(err, results) {
+					var recent_slides = results[0];
+					var markdown = results[1];
+					
+					if(markdown != "") {
+						var stream = mu.compileAndRender('index.html', {_id: id, data: markdown, recent_slides: recent_slides});
 						util.pump(stream, res);
 					}
 					else {
-						res.end("not found")
+						res.end("not found");
 					}
 				})
-			});
+			})
 		})
 		
 		router.get(/\/assets[^*]*/,  function() {
@@ -173,6 +186,6 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 			});
 
 		}).listen(svrport, null);
-        }
-    });
+		}
+	});
 });
