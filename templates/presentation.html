@@ -153,7 +153,7 @@
 		<option value="horizontal-slide">horizontal-slide
 		<option value="vertical-slide">vertical-slide
 	</select>
-	<a href="/edit/{{_id}}">»Edit</a>
+	<button id="edit" class="btn btn-success">»Edit</button>
 </div>
 <script type="text/javascript">
 	$(document).mousemove(function(e) {
@@ -164,10 +164,17 @@
 		else {
 			$("#addition").hide();
 		}
-	})
+	}).keydown(function(e) {
+        //quick launch: edit (click 'e' or 'E')
+        if(e.keyCode == 69 || e.keyCode == 101) { $("#edit").trigger("click"); }
+    })
+
+    $("#edit").click(function() { location.href = "/edit/{{_id}}"; })
+
 	$("#theme").change(function() {
 		$("#theme_src").prop("href", "/assets/themes/style/"+$(this).find("option:selected").prop("value")+".css");
 	})
+
 	$("#transition").change(function() {
 		$("#trans_src").prop("href", "/assets/themes/transition/"+$(this).find("option:selected").prop("value")+".css");
 	})

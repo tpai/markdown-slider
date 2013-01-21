@@ -32,11 +32,10 @@
 			top: 10px;
 			left: 10px;
 		}
-		
-		#html {
-			padding: 20px
+		#markdown, #html {
+			font-size: 16px;
+			line-height: 24px;
 		}
-		
 		#dashboard {
 			position: fixed;
 			top: 0px;
@@ -51,14 +50,22 @@
 		<h5>Recent slides</h5>
 		<ul>
 			{{#recent_slides}}
-				<li><a id="{{_id}}" href="/edit/{{_id}}">{{_id}}</a> <i class="icon-remove-sign"></i></li>
+				<li>
+					<a href="/edit/{{_id}}">{{_id}}</a>
+					<a id="{{_id}}" href="#" class="icon-remove-sign" style="cursor: pointer;"></a>
+				</li>
 			{{/recent_slides}}
 		</ul>
 		<h5>Quick launch</h5>
 		<ul>
 			<li>Save
 				<ul>
-					<li>Ctrl+ ↵</li>
+					<li>Ctrl + S</li>
+				</ul>
+			</li>
+			<li>Preview
+				<ul>
+					<li>Ctrl + F5</li>
 				</ul>
 			</li>
 			<li>Scroll
@@ -79,7 +86,7 @@
 			<div id="editor">
 				<textarea id="markdown" placeholder="markdown here...">{{data}}</textarea>
 				<p>
-					<a class="btn btn-primary" href="/">Add</a>
+					<button class="btn btn-primary" id="add">Add</button>
 					<button class="btn btn-success" id="save">Save</button>
 					<button class="btn btn-info" id="preview" style="display: none;">Preview</button>
 					<input type="text" id="pre_url" style="display: none;" rel="popover" data-animation="true" data-placement="top" data-html="true" data-title="Notice" data-content="<font color='green'><b>Successfully saved!</b></font>">
@@ -100,6 +107,7 @@
 		//resize editor
 		$("#markdown").css("width", ($(".span4")[0].clientWidth-20)+"px").css("height", (window.screen.height-220)+"px")
 		$("#markdown").keyup(function() { $("#html").html(converter.makeHtml($("#markdown").prop("value"))); }).trigger("keyup");
+		//quick launch: scroll (Alt+up, down, pageup, pagedown)
 		$("#markdown").keydown(function(e) {
 			if (e.altKey) {
 				switch(e.keyCode) {
@@ -121,9 +129,6 @@
 						break;
 				}
 			}
-			else if(e.ctrlKey) {
-				if(e.keyCode == 13)$("#save").trigger("click");
-			}
 		});
 
 		//dashboard show/hide
@@ -136,11 +141,31 @@
 			else {
 				$("#dashboard").hide();
 			}
+		}).keydown(function(e) {
+			//quick launch: save, preview(Ctrl+S, Ctrl+F5)
+			if(e.ctrlKey) {
+				switch(e.keyCode) {
+					case 83:
+					case 115:
+						$("#save").trigger("click");
+						e.preventDefault();
+						break;
+					case 116:
+						$("#preview").trigger("click");
+						e.preventDefault();
+						break;
+				}
+			}
 		})
 
 		//preview slide
 		$("#preview").click(function () { $("#do_preview").submit(); });
 		
+		//add slide
+		$("#add").click(function() {
+			location.href = "/";
+		})
+
 		//save slide
 		var id = "{{_id}}";
 		$("#save").click(function () {
@@ -157,17 +182,33 @@
 						if(obj.responseText != "") {
 							assignId(id = obj.responseText);
 						}
-						$("#pre_url").trigger("click");
 						//popover notice
-						$("#pre_url").popover('show');
+						$("#pre_url").trigger("click").popover('show');
 						setTimeout(function() {$("#pre_url").popover('hide');}, 2000)
 					}
 				})
 			}
 			else {
-				alert("better not to save empty content")
+				alert("Better not to save empty content.")
 			}
 		});
+
+		//remove slide
+		$(".icon-remove-sign").click(function() {
+			var id = $(this).prop("id");
+			if(confirm("Are you sure to delete this slide?")) {
+				$.ajax({
+					type: "POST",
+					url: "/delete",
+					data: { _id: id },
+					complete: function(obj) {
+						if(obj.responseText == "{{_id}}") {
+							$("#add").trigger("click");
+						}
+					}
+				})
+			}
+		})
 		
 		var assignId = function(id) {
 			$("#preview").show(0);
@@ -177,6 +218,7 @@
 		};
 		if(id != "")assignId(id);
 
+		//highlight the slide
 		$("#{{_id}}").parent().css("background-color", "pink");
 	})
 

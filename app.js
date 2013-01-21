@@ -5,7 +5,6 @@ var	http = require('http'),
 	$ = require('jquery'),
 	async = require('async'),
 	director = require('director'),
-	cronJob = require('cron').CronJob,
 	send = require('send'),
 	url = require('url'),
 	auth = require('http-auth'),
@@ -20,10 +19,10 @@ var	http = require('http'),
 	mongodb = require('mongodb'),
 	BSON = mongodb.BSONPure,
 	mongodbServer = new mongodb.Server(dbserver, dbport, {
-        safe: false
-    }),
+		safe: false
+	}),
 
-    //only known by author
+	//only known by author
 	editable = auth({
 		authRealm: "Do you have permit to edit this?",
 		authList: ['username:password']
@@ -86,9 +85,9 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 			if(id != "") {
 				collection.update({_id: new BSON.ObjectID(id)}, {$set: {markdown: md}}, function(err) {
 					if (err) {
-						console.log('Failed to Update');
+						console.log('Failed to update');
 					} else {
-						console.log('Successfully Update ('+id+')');
+						console.log('Successfully update ('+id+')');
 					}
 					res.end();
 				})
@@ -96,9 +95,9 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 			else {
 				collection.insert({markdown: md}, function(err, data) {
 					if (data) {
-						console.log('Successfully Insert ('+data[0]._id.toString()+')');
+						console.log('Successfully insert ('+data[0]._id.toString()+')');
 					} else {
-						console.log('Failed to Insert');
+						console.log('Failed to insert');
 					}
 					res.end(data[0]._id.toString());
 				})
@@ -138,7 +137,29 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 				})
 			})
 		})
+
+		//delete
+		router.post('/delete', function () {
+			var res = this.res;
+			var id = this.req.body._id;
+			if(id != "") {
+				collection.remove({_id: new BSON.ObjectID(id)}, function(err, removed){
+					if(err) {
+						console.log('Failed to delete ('+id+')');
+						res.end();
+					} else {
+						console.log('Successfully delete ('+id+')');
+						res.end(id);
+					}
+				});
+			}
+			else {
+				console.log('Nothing to delete');
+				res.end();
+			}
+		})
 		
+		//serve files from assets/
 		router.get(/\/assets[^*]*/,  function() {
 			var res = this.res;
 			var req = this.req;
@@ -179,10 +200,10 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 			});
 			
 			router.dispatch(req, res, function (err) {
-			  if (err) {
-				res.writeHead(404);
-				res.end();
-			  }
+				if (err) {
+					res.writeHead(404);
+					res.end();
+				}
 			});
 
 		}).listen(svrport, null);
