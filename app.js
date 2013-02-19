@@ -52,7 +52,7 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 			async.series([ dashboard_recent_slides ], function(err, results) {
 				var recent_slides = results[0];
 				var stream = mu.compileAndRender('index.html', {recent_slides: recent_slides});
-				util.pump(stream, res);
+				stream.pipe(res);
 			})
 		})
 
@@ -65,7 +65,7 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 					if(val.length >= 1) {
 						var markdown = val[0].markdown;
 						var stream = mu.compileAndRender('presentation.html', {_id: id, data: markdown});
-						util.pump(stream, res);
+						stream.pipe(res);
 					}
 					else {
 						res.end("not found")
@@ -129,7 +129,7 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 					
 					if(markdown != "") {
 						var stream = mu.compileAndRender('index.html', {_id: id, data: markdown, recent_slides: recent_slides});
-						util.pump(stream, res);
+						stream.pipe(res);
 					}
 					else {
 						res.end("not found");
