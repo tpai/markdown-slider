@@ -39,174 +39,174 @@ new mongodb.Db(dbname, mongodbServer, {w: 1}).open(function(error, client) {
 	client.authenticate(dbuser, dbpass, function(err, val) {
 		if (err) throw error;
 		else {
-		//select collection
-		var collection = new mongodb.Collection(client, collection_name);
-		console.log("Database Connected!")
-		
-		var router = new director.http.Router();
+			//select collection
+			var collection = new mongodb.Collection(client, collection_name);
+			console.log("Database Connected!")
+			
+			var router = new director.http.Router();
 
-		//create
-		router.get('/', function() {
-			var res = this.res;
-			
-			async.series([ dashboard_recent_slides ], function(err, results) {
-				var recent_slides = results[0];
-				var stream = mu.compileAndRender('index.html', {recent_slides: recent_slides});
-				stream.pipe(res);
-			})
-		})
-
-		//read
-		router.get('/pre/:id', function(id) {
-			var res = this.res;
-			
-			collection.find({_id: new BSON.ObjectID(id)}, function(err, data) {
-				data.toArray(function(key, val) {
-					if(val.length >= 1) {
-						var markdown = val[0].markdown;
-						var stream = mu.compileAndRender('presentation.html', {_id: id, data: markdown});
-						stream.pipe(res);
-					}
-					else {
-						res.end("not found")
-					}
-				})
-			});
-		})
-
-		//update
-		router.post('/save', function () {
-			var res = this.res;
-			res.writeHead(200, { 'Content-Type': 'application/json' })
-			
-			var id = this.req.body._id;
-			var md = this.req.body.markdown;
-			
-			if(id != "") {
-				collection.update({_id: new BSON.ObjectID(id)}, {$set: {markdown: md}}, function(err) {
-					if (err) {
-						console.log('Failed to update');
-					} else {
-						console.log('Successfully update ('+id+')');
-					}
-					res.end();
-				})
-			}
-			else {
-				collection.insert({markdown: md}, function(err, data) {
-					if (data) {
-						console.log('Successfully insert ('+data[0]._id.toString()+')');
-					} else {
-						console.log('Failed to insert');
-					}
-					res.end(data[0]._id.toString());
-				})
-			}
-		})
-		
-		//update page
-		router.get('/edit/:id', function(id) {
-			var res = this.res;
-			var req = this.req;
-			editable.apply(req, res, function(username) {
-				async.series([
-					dashboard_recent_slides, 
-					function(callback) {
-						collection.find({_id: new BSON.ObjectID(id)}, function(err, data) {
-							data.toArray(function(key, val) {
-								if(val.length >= 1) {
-									var markdown = decodeURIComponent(val[0].markdown);
-									callback(null, markdown);
-								}
-								else {
-									callback(null, "")
-								}
-							})
-						});
-					}], function(err, results) {
+			//create
+			router.get('/', function() {
+				var res = this.res;
+				
+				async.series([ dashboard_recent_slides ], function(err, results) {
 					var recent_slides = results[0];
-					var markdown = results[1];
-					
-					if(markdown != "") {
-						var stream = mu.compileAndRender('index.html', {_id: id, data: markdown, recent_slides: recent_slides});
-						stream.pipe(res);
-					}
-					else {
-						res.end("not found");
-					}
+					var stream = mu.compileAndRender('index.html', {recent_slides: recent_slides});
+					stream.pipe(res);
 				})
 			})
-		})
 
-		//delete
-		router.post('/delete', function () {
-			var res = this.res;
-			var id = this.req.body._id;
-			if(id != "") {
-				collection.remove({_id: new BSON.ObjectID(id)}, function(err, removed){
-					if(err) {
-						console.log('Failed to delete ('+id+')');
-						res.end();
-					} else {
-						console.log('Successfully delete ('+id+')');
-						res.end(id);
-					}
+			//read
+			router.get('/pre/:id', function(id) {
+				var res = this.res;
+				
+				collection.find({_id: new BSON.ObjectID(id)}, function(err, data) {
+					data.toArray(function(key, val) {
+						if(val.length >= 1) {
+							var markdown = val[0].markdown;
+							var stream = mu.compileAndRender('presentation.html', {_id: id, data: markdown});
+							stream.pipe(res);
+						}
+						else {
+							res.end("not found")
+						}
+					})
 				});
-			}
-			else {
-				console.log('Nothing to delete');
-				res.end();
-			}
-		})
-		
-		//serve files from assets/
-		router.get(/\/assets[^*]*/,  function() {
-			var res = this.res;
-			var req = this.req;
-			send(req, url.parse(req.url).pathname)
-			.root(__dirname)
-			.on('error', function(err) {
-				res.statusCode = err.status || 500;
-				res.end(err.message);
 			})
-			.on('directory', function() {
-				res.statusCode = 301;
-				res.setHeader('Location', req.url + '/');
-				res.end('Redirecting to ' + req.url + '/');
+
+			//update
+			router.post('/save', function () {
+				var res = this.res;
+				res.writeHead(200, { 'Content-Type': 'application/json' })
+				
+				var id = this.req.body._id;
+				var md = this.req.body.markdown;
+				var title = this.req.body.title;
+				
+				if(id != "") {
+					collection.update({_id: new BSON.ObjectID(id)}, {$set: {title: title, markdown: md}}, function(err) {
+						if (err) {
+							console.log('Failed to update');
+						} else {
+							console.log('Successfully update ('+id+')');
+						}
+						res.end();
+					})
+				}
+				else {
+					collection.insert({title: title, markdown: md}, function(err, data) {
+						if (data) {
+							console.log('Successfully insert ('+data[0]._id.toString()+')');
+						} else {
+							console.log('Failed to insert');
+						}
+						res.end(data[0]._id.toString());
+					})
+				}
 			})
-			.pipe(res);
-		});
-		
-		var dashboard_recent_slides = function(callback) {
-			var id_arr = [];
-			collection.find({}, function(err, data) {
-				data.toArray(function(key, val) {
-					$.each(val, function(k, v) {
-						id_arr.push({_id: v._id});
-						if(k == val.length - 1) {
-							callback(null, id_arr);
+			
+			//update page
+			router.get('/edit/:id', function(id) {
+				var res = this.res;
+				var req = this.req;
+				editable.apply(req, res, function(username) {
+					async.series([
+						dashboard_recent_slides, 
+						function(callback) {
+							collection.find({_id: new BSON.ObjectID(id)}, function(err, data) {
+								data.toArray(function(key, val) {
+									if(val.length >= 1) {
+										var title = decodeURIComponent(val[0].title);
+										var markdown = decodeURIComponent(val[0].markdown);
+										callback(null, {title: title, markdown: markdown});
+									}
+									else {
+										callback(null, "")
+									}
+								})
+							});
+						}], function(err, results) {
+						var recent_slides = results[0];
+						var nowSlide = results[1];
+						
+						if(nowSlide != "") {
+							var stream = mu.compileAndRender('index.html', {_id: id, title: nowSlide.title, data: nowSlide.markdown, recent_slides: recent_slides});
+							stream.pipe(res);
+						}
+						else {
+							res.end("not found");
 						}
 					})
 				})
-			});
-		};
-		
-		http.createServer(function (req, res) {
-			mu.clearCache();
-			
-			req.chunks = [];
-			req.on('data', function (chunk) {
-				req.chunks.push(chunk.toString());
-			});
-			
-			router.dispatch(req, res, function (err) {
-				if (err) {
-					res.writeHead(404);
+			})
+
+			//delete
+			router.post('/delete', function () {
+				var res = this.res;
+				var id = this.req.body._id;
+				if(id != "") {
+					collection.remove({_id: new BSON.ObjectID(id)}, function(err, removed){
+						if(err) {
+							console.log('Failed to delete ('+id+')');
+							res.end();
+						} else {
+							console.log('Successfully delete ('+id+')');
+							res.end(id);
+						}
+					});
+				}
+				else {
+					console.log('Nothing to delete');
 					res.end();
 				}
+			})
+			
+			//serve files from assets/
+			router.get(/\/assets[^*]*/,  function() {
+				var res = this.res;
+				var req = this.req;
+				send(req, url.parse(req.url).pathname)
+				.root(__dirname)
+				.on('error', function(err) {
+					res.statusCode = err.status || 500;
+					res.end(err.message);
+				})
+				.on('directory', function() {
+					res.statusCode = 301;
+					res.setHeader('Location', req.url + '/');
+					res.end('Redirecting to ' + req.url + '/');
+				})
+				.pipe(res);
 			});
+			
+			var dashboard_recent_slides = function(callback) {
+				var arr = [];
+				collection.find({}).sort('_id','descending').limit(15).toArray(function(key, val) {
+					$.each(val, function(k, v) {
+						arr.push({_id: v._id, title: decodeURIComponent(v.title)});
+						if(k == val.length - 1) {
+							callback(null, arr);
+						}
+					})
+				});
+			};
+			
+			http.createServer(function (req, res) {
+				mu.clearCache();
+				
+				req.chunks = [];
+				req.on('data', function (chunk) {
+					req.chunks.push(chunk.toString());
+				});
+				
+				router.dispatch(req, res, function (err) {
+					if (err) {
+						res.writeHead(404);
+						res.end();
+					}
+				});
 
-		}).listen(svrport, null);
+			}).listen(svrport, null);
 		}
 	});
 });

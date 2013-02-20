@@ -51,8 +51,8 @@
 		<ul>
 			{{#recent_slides}}
 				<li>
-					<a href="/edit/{{_id}}">{{_id}}</a>
-					<a id="{{_id}}" href="#" class="icon-remove-sign" style="cursor: pointer;"></a>
+					<a href="/edit/{{_id}}">{{title}}</a>
+					<a id="{{_id}}" href="#" class="icon-remove"></a>
 				</li>
 			{{/recent_slides}}
 		</ul>
@@ -84,6 +84,7 @@
 	<div class="row-fluid">
 		<div class="span4">
 			<div id="editor">
+				<input type="text" id="title" placeholder="your slide title" value="{{title}}"><br>
 				<textarea id="markdown" placeholder="markdown here...">{{data}}</textarea>
 				<p>
 					<button class="btn btn-primary" id="add">Add</button>
@@ -104,8 +105,11 @@
 		
 		var converter = new Showdown.converter();
 		
+		var sideWidth = ($(".span4")[0].clientWidth-20)+"px";
+		var sideHeight = (window.screen.height-240)+"px";
 		//resize editor
-		$("#markdown").css("width", ($(".span4")[0].clientWidth-20)+"px").css("height", (window.screen.height-220)+"px")
+		$("#title").css("width", sideWidth)
+		$("#markdown").css("width", sideWidth).css("height", sideHeight)
 		$("#markdown").keyup(function() { $("#html").html(converter.makeHtml($("#markdown").prop("value"))); }).trigger("keyup");
 		//quick launch: scroll (Alt+up, down, pageup, pagedown)
 		$("#markdown").keydown(function(e) {
@@ -169,6 +173,7 @@
 		//save slide
 		var id = "{{_id}}";
 		$("#save").click(function () {
+			var title = $("#title").prop("value");
 			var markdown = $("#markdown").prop("value");
 			if(markdown != "") {
 				$.ajax({
@@ -176,6 +181,7 @@
 					url: "/save",
 					data: {
 						_id: id,
+						title: encodeURIComponent(title),
 						markdown: encodeURIComponent(markdown)
 					},
 					complete: function(obj) {
@@ -194,7 +200,7 @@
 		});
 
 		//remove slide
-		$(".icon-remove-sign").click(function() {
+		$(".icon-remove").click(function() {
 			var id = $(this).prop("id");
 			if(confirm("Are you sure to delete this slide?")) {
 				$.ajax({
@@ -202,9 +208,9 @@
 					url: "/delete",
 					data: { _id: id },
 					complete: function(obj) {
-						if(obj.responseText == "{{_id}}") {
+						//if(obj.responseText == "{{_id}}") {
 							$("#add").trigger("click");
-						}
+						//}
 					}
 				})
 			}
