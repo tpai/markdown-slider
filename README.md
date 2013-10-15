@@ -1,5 +1,5 @@
 # *[English manual](https://github.com/tpai/markdown_slider#english-en_us)
-# *[繁體中文手冊](https://github.com/tpai/markdown_slider#-zh_tw)
+# *[繁體中文手冊](https://github.com/tpai/markdown_slider#markdown%E7%B0%A1%E5%A0%B1%E7%94%A2%E7%94%9F%E5%99%A8)
 
 - - -
 
