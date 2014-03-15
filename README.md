@@ -1,9 +1,5 @@
-# *[English manual](https://github.com/tpai/markdown_slider#english-en_us)
-# *[繁體中文手冊](https://github.com/tpai/markdown_slider#markdown%E7%B0%A1%E5%A0%B1%E7%94%A2%E7%94%9F%E5%99%A8)
-
-- - -
-
-#English en_US
+> #[English manual](https://github.com/tpai/markdown_slider#markdown-slider)
+> #[繁體中文手冊](https://github.com/tpai/markdown_slider#markdown%E7%B0%A1%E5%A0%B1%E7%94%A2%E7%94%9F%E5%99%A8)
 
 ##Markdown Slider
 Use [markdown](http://markdown.tw) language to create your slide efficiency. 
@@ -25,7 +21,7 @@ Setup
 1. unzip files into your www/ directory
 
 2. $npm install
-   * **jsdom module needs python and c++ runtime environment, be sure to install before run 'npm install'.**
+   * **jsdom module needs [python2.x.x](https://www.python.org/download/releases/2.7.6/) and [c++ runtime env](http://www.microsoft.com/zh-tw/download/details.aspx?id=5555), be sure to install before run 'npm install'.**
 
 3. fill up your settings
 
@@ -64,8 +60,6 @@ Quick launch
 
 - - -
 
-#繁體中文 zh_TW
-
 ##Markdown簡報產生器
 利用[markdown](http://markdown.tw)有效率的製作簡報
 
@@ -87,7 +81,7 @@ Quick launch
 1. 將所有的檔案放置到www/資料夾下
 
 2. $npm install (下載相應模組)
-   * **jsdom模組需要python跟c++環境，請確認安裝完畢後再下'npm install'指令。**
+   * **jsdom模組需要[python2.x.x](https://www.python.org/download/releases/2.7.6/)跟[c++編譯環境](http://www.microsoft.com/zh-tw/download/details.aspx?id=5555)，請確認安裝完畢後再下'npm install'指令。**
 
 3. 填寫設定值
 
